@@ -23,11 +23,11 @@ server = "irc.chat.twitch.tv"
 port = 6667
 nickname = "frankied003"
 token = os.getenv("TWITCH_TOKEN")
-channel = "#moistcr1tikal"
+channel = "#tenz"
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s — %(message)s",
+    format="%(asctime)s.%(msecs)03d — %(message)s",
     datefmt="%Y-%m-%d_%H:%M:%S",
     handlers=[logging.FileHandler("chat.log", encoding="utf-8")],
 )
@@ -56,7 +56,15 @@ while True:
 
     # while the correct answer is not found, the chats will keep on printing
     while correctAnswerFound is not True:
-        resp = sock.recv(2048).decode("utf-8")
+
+        while True:
+            try:
+                resp = sock.recv(2048).decode(
+                    "utf-8"
+                )  # sometimes this fails, hence retry until it succeeds
+            except:
+                continue
+            break
 
         if resp.startswith("PING"):
             sock.send("PONG\n".encode("utf-8"))
