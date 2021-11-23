@@ -23,7 +23,7 @@ server = "irc.chat.twitch.tv"
 port = 6667
 nickname = "frankied003"
 token = os.getenv("TWITCH_TOKEN")
-channel = "#tenz"
+channel = "#cliz"
 
 logging.basicConfig(
     level=logging.DEBUG,
