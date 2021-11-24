@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import socket
 import logging
 from emoji import demojize
+import re
 
 # loading environment variables
 load_dotenv()
@@ -23,7 +24,7 @@ server = "irc.chat.twitch.tv"
 port = 6667
 nickname = "frankied003"
 token = os.getenv("TWITCH_TOKEN")
-channel = "#cliz"
+channel = "#xqcow"
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -59,9 +60,7 @@ while True:
 
         while True:
             try:
-                resp = sock.recv(2048).decode(
-                    "utf-8"
-                )  # sometimes this fails, hence retry until it succeeds
+                resp = sock.recv(2048).decode("utf-8")
             except:
                 continue
             break
@@ -70,18 +69,37 @@ while True:
             sock.send("PONG\n".encode("utf-8"))
 
         elif len(resp) > 0:
-            username = resp.split(":")[1].split("!")[0]
-            message = resp.split(":")[2]
-            strippedMessage = " ".join(message.split())
-            logMessage = username + " - " + message
-            logging.info(demojize(logMessage))
+            # some responses have mulitple messages, split them
+            for response in resp.split("\n\n"):
+                messagesInResponse = response.strip().splitlines()
+                for twitchMessage in messagesInResponse:
 
-            # once the answer is found, the chats will stop, correct answer is highlighted in green, and onto next question
-            if str(strippedMessage).lower() in correctAnswers:
-                print(bcolors.OKGREEN + username + " - " + message + bcolors.ENDC)
-                correctAnswerFound = True
-            else:
-                if username == nickname:
-                    print(bcolors.OKCYAN + username + " - " + message + bcolors.ENDC)
-                else:
-                    print(username + " - " + message)
+                    # only happens after I connect so I need this here to keep it going
+                    try:
+                        username = twitchMessage.split(":")[1].split("!")[0]
+                        message = twitchMessage.split(":")[2]
+                    except:
+                        break
+
+                    strippedMessage = " ".join(message.split())  # remove white space
+                    logMessage = username + " - " + message
+                    logging.info(demojize(logMessage))  # for emojis
+
+                    # once the answer is found, the chats will stop, correct answer is highlighted in green, and onto next question
+                    if str(strippedMessage).lower() in correctAnswers:
+                        print(
+                            bcolors.OKGREEN + username + " - " + message + bcolors.ENDC
+                        )
+                        correctAnswerFound = True
+                        break
+                    else:
+                        if username == nickname:
+                            print(
+                                bcolors.OKCYAN
+                                + username
+                                + " - "
+                                + message
+                                + bcolors.ENDC
+                            )
+                        else:
+                            print(username + " - " + message)
